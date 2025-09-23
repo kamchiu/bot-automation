@@ -1,19 +1,50 @@
 #!/bin/bash
 set -e
 
+# 配置变量
+START_INTERVAL_MINUTES=3  # 机器人启动间隔（分钟）
+
+# 显示帮助信息
+show_help() {
+    echo "HummingBot 机器人启动脚本"
+    echo ""
+    echo "用法: $0 <配置文件夹名>"
+    echo ""
+    echo "参数:"
+    echo "  <配置文件夹名>    配置文件夹名称 (如 ads_31)"
+    echo ""
+    echo "示例:"
+    echo "  $0 ads_31                    # 启动 ads_31 配置的机器人"
+    echo ""
+    echo "功能:"
+    echo "  - 读取配置文件夹下的 bots.csv 文件"
+    echo "  - 每隔 $START_INTERVAL_MINUTES 分钟启动一个机器人"
+    echo "  - 使用 tmux 管理机器人会话"
+}
+
+# 检查参数
+if [ $# -eq 0 ]; then
+    show_help
+    exit 1
+fi
+
+CONFIG_FOLDER="$1"
+
+# 检查配置文件夹是否存在
+if [ ! -d "$CONFIG_FOLDER" ]; then
+    echo "错误: 配置文件夹不存在: $CONFIG_FOLDER"
+    exit 1
+fi
+
 # 检查bots.csv文件是否存在
-BOTS_CSV="bots.csv"
+BOTS_CSV="$CONFIG_FOLDER/bots.csv"
 if [ ! -f "$BOTS_CSV" ]; then
     echo "错误: 找不到 $BOTS_CSV 文件"
     exit 1
 fi
 
-# 检查Python脚本是否存在
-PREPARE_SCRIPT="prepare.py"
-if [ ! -f "$PREPARE_SCRIPT" ]; then
-    echo "错误: 找不到 $PREPARE_SCRIPT 文件"
-    exit 1
-fi
+echo "使用配置文件夹: $CONFIG_FOLDER"
+echo "机器人配置文件: $BOTS_CSV"
 
 # 从bots.csv读取name字段
 echo "从 $BOTS_CSV 读取机器人名称..."
@@ -39,7 +70,7 @@ SESSION=$(tmux display-message -p '#S' 2>/dev/null || echo "bot")
 # 如果tmux session不存在，创建一个新的
 if ! tmux has-session -t "$SESSION" 2>/dev/null; then
     echo "创建新的tmux session: $SESSION"
-    tmux new-session -s "$SESSION"
+    tmux new-session -d -s "$SESSION"
 fi
 
 # 启动每个机器人的函数
@@ -64,18 +95,6 @@ start_bot() {
     echo "机器人 $bot_name 启动命令已发送"
 }
 
-# 先运行prepare.py生成配置
-echo "运行 prepare.py 生成配置文件..."
-source ~/miniconda3/etc/profile.d/conda.sh
-conda activate hummingbot
-python "$PREPARE_SCRIPT"
-if [ $? -ne 0 ]; then
-    echo "错误: prepare.py 执行失败"
-    exit 1
-fi
-
-echo "配置文件生成完成"
-
 # 启动第一个机器人（立即启动）
 start_bot "${BOT_NAMES[0]}" 0
 
@@ -83,7 +102,7 @@ start_bot "${BOT_NAMES[0]}" 0
 for i in "${!BOT_NAMES[@]}"; do
     if [ $i -gt 0 ]; then
         bot_name="${BOT_NAMES[$i]}"
-        delay_minutes=$((i * 5))
+        delay_minutes=$((i * START_INTERVAL_MINUTES))
 
         # 使用at命令在指定时间后启动机器人
         echo "设置 $bot_name 在 $delay_minutes 分钟后启动"
@@ -127,13 +146,14 @@ done
 echo "="
 echo "启动计划:"
 echo "机器人数量: ${#BOT_NAMES[@]}"
-echo "启动间隔: 5分钟"
-echo "总启动时间: $((((${#BOT_NAMES[@]} - 1) * 5)) 分钟"
+echo "启动间隔: $START_INTERVAL_MINUTES 分钟"
+local total_time=$(((${#BOT_NAMES[@]} - 1) * START_INTERVAL_MINUTES))
+echo "总启动时间: $total_time 分钟"
 echo "="
 echo "已启动: ${BOT_NAMES[0]} (立即)"
 for i in "${!BOT_NAMES[@]}"; do
     if [ $i -gt 0 ]; then
-        delay_minutes=$((i * 5))
+        delay_minutes=$((i * START_INTERVAL_MINUTES))
         echo "计划启动: ${BOT_NAMES[$i]} (${delay_minutes}分钟后)"
     fi
 done
