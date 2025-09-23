@@ -477,20 +477,20 @@ def generate_docker_compose(bots):
             f.write("\n")
 
 
-# def create_directories(bots):
-#     """为每个机器人创建必要的目录结构"""
-#     for bot in bots:
-#         name = bot.get('name', '').strip()
-#         if not name:
-#             continue
+def create_directories(bots):
+    """为每个机器人创建必要的目录结构"""
+    for bot in bots:
+        name = bot.get('name', '').strip()
+        if not name:
+            continue
 
-#         # 主目录
-#         for root_dir, output_path in [('conf', CONF_OUTPUT_DIR), ('logs', LOGS_OUTPUT_DIR), ('data', DATA_OUTPUT_DIR)]:
-#             os.makedirs(os.path.join(output_path, name), exist_ok=True)
+        # 主目录
+        for root_dir, output_path in [('conf', CONF_OUTPUT_DIR)]:
+            os.makedirs(os.path.join(output_path, name), exist_ok=True)
 
-#         # 子目录
-#         for sub in SUB_DIRS:
-#             os.makedirs(os.path.join(CONF_OUTPUT_DIR, name, sub), exist_ok=True)
+        # 子目录
+        for sub in SUB_DIRS:
+            os.makedirs(os.path.join(CONF_OUTPUT_DIR, name, sub), exist_ok=True)
 
 
 def generate_v2_strategy_files(bots, strategies):
@@ -748,8 +748,8 @@ def main():
     generate_docker_compose(bots)
 
     # ---------- 4. 创建目录结构 ----------
-    # print("创建目录结构...")
-    # create_directories(bots)
+    print("创建目录结构...")
+    create_directories(bots)
 
     # strategies 目录不再需要，因为文件保存到各机器人的 controllers 目录
     # os.makedirs('strategies', exist_ok=True)

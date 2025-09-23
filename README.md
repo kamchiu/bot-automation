@@ -21,6 +21,7 @@ hummingbot-prepare/
 │   └── config.sh                 # 配置管理函数
 ├── start-bot-modular.sh          # 模块化启动脚本
 ├── bot-manager.sh                # 通用机器人管理工具
+├── deploy.sh                     # 配置部署脚本
 ├── prepare.py                    # 配置生成脚本
 ├── templates/                    # 模板文件夹
 ├── ads_31/                       # 服务器1配置
@@ -48,6 +49,7 @@ cd hummingbot-prepare
 chmod +x lib/*.sh
 chmod +x start-bot-modular.sh
 chmod +x bot-manager.sh
+chmod +x deploy.sh
 ```
 
 ### 3. 创建配置文件夹
@@ -75,6 +77,35 @@ python prepare.py ads_31
 
 # 生成 ads_32 的配置
 python prepare.py ads_32
+```
+
+### 6. 配置 SSH 连接
+
+在 `~/.ssh/config` 文件中配置服务器连接信息：
+
+```bash
+# 编辑 SSH 配置
+nano ~/.ssh/config
+
+# 添加服务器配置（主机名必须与配置文件夹名相同）
+Host ads_31
+    HostName 192.168.1.31
+    User ubuntu
+    Port 22
+    IdentityFile ~/.ssh/id_rsa
+
+Host ads_32
+    HostName 192.168.1.32
+    User ubuntu
+    Port 22
+    IdentityFile ~/.ssh/id_rsa
+```
+
+### 7. 部署配置
+
+```bash
+# 部署 ads_31 配置（SSH配置中的主机名必须与配置文件夹名相同）
+./deploy.sh ads_31
 ```
 
 ## 🎯 使用方法
