@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# 配置变量
+START_INTERVAL_MINUTES=3  # 机器人启动间隔（分钟）
+
 # 获取脚本所在目录
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LIB_DIR="$SCRIPT_DIR/lib"
@@ -61,7 +64,7 @@ main() {
     for i in "${!bot_names[@]}"; do
         if [ $i -gt 0 ]; then
             local bot_name="${bot_names[$i]}"
-            local delay_minutes=$((i * 5))
+            local delay_minutes=$((i * START_INTERVAL_MINUTES))
 
             print_info "设置 $bot_name 在 $delay_minutes 分钟后启动"
             schedule_delayed_start "$bot_name" "$session" "$delay_minutes"
@@ -80,22 +83,21 @@ schedule_delayed_start() {
 
     # 创建临时脚本用于延迟启动
     local temp_script="/tmp/start_${bot_name}_$$.sh"
-    cat > "$temp_script" << EOF
-#!/bin/bash
-# 加载模块
-source "$LIB_DIR/common.sh"
-source "$LIB_DIR/docker.sh"
 
-SESSION=\$(tmux display-message -p '#S' 2>/dev/null || echo "default")
-print_info "延迟启动机器人: $bot_name"
-
-# 启动机器人
-start_docker_container "$bot_name" "\$SESSION" "$bot_name"
-
-print_info "机器人 $bot_name 启动完成"
-# 清理临时脚本
-rm -f "$temp_script"
-EOF
+    # 写入临时脚本
+    {
+        echo '#!/bin/bash'
+        echo 'SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"'
+        echo 'LIB_DIR="$(dirname "$SCRIPT_DIR")/lib"'
+        echo 'source "$LIB_DIR/common.sh"'
+        echo 'source "$LIB_DIR/docker.sh"'
+        echo "BOT_NAME=\"$bot_name\""
+        echo "SESSION=\"$session\""
+        echo 'print_info "延迟启动机器人: $BOT_NAME"'
+        echo 'start_docker_container "$BOT_NAME" "$SESSION" "$BOT_NAME"'
+        echo 'print_info "机器人 $BOT_NAME 启动完成"'
+        echo 'rm -f "$0"'
+    } > "$temp_script"
 
     chmod +x "$temp_script"
 
@@ -116,22 +118,23 @@ show_startup_plan() {
     echo "="
     print_info "启动计划:"
     echo "  机器人数量: ${#bot_names_ref[@]}"
-    echo "  启动间隔: 5分钟"
-    echo "  总启动时间: $((((${#bot_names_ref[@]} - 1) * 5)) 分钟"
+    echo "  启动间隔: $START_INTERVAL_MINUTES 分钟"
+    local total_time=$(((${#bot_names_ref[@]} - 1) * START_INTERVAL_MINUTES))
+    echo "  总启动时间: $total_time 分钟"
     echo "="
     echo "  已启动: ${bot_names_ref[0]} (立即)"
 
     for i in "${!bot_names_ref[@]}"; do
         if [ $i -gt 0 ]; then
-            local delay_minutes=$((i * 5))
+            local delay_minutes=$((i * START_INTERVAL_MINUTES))
             echo "  计划启动: ${bot_names_ref[$i]} (${delay_minutes}分钟后)"
         fi
     done
 
     echo "="
-    print_info "使用 'tmux attach' 连接到session查看机器人状态"
-    print_info "使用 'tmux list-windows' 查看所有窗口"
-    print_info "使用 'atq' 查看待执行的启动任务"
+    print_info "使用 tmux attach 连接到session查看机器人状态"
+    print_info "使用 tmux list-windows 查看所有窗口"
+    print_info "使用 atq 查看待执行的启动任务"
 }
 
 # 执行主函数
