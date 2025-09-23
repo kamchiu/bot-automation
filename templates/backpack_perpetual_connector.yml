@@ -1,0 +1,9 @@
+#####################################
+###   backpack_perpetual config   ###
+#####################################
+
+connector: backpack_perpetual
+
+backpack_perpetual_api_key: ${encrypted_api_key}
+
+backpack_perpetual_secret_key: ${encrypted_secret_key}

@@ -1,0 +1,74 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.csv
+conf/
+docker-compose.override.yml
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Data files
+data/
+*.csv.backup
+*.csv.bak
+
+# Temporary files
+*.tmp
+*.temp
+/tmp/
+temp/
+
+# Configuration cache
+.csv_hashes.json
+*.cache
+
+# Docker
+.dockerignore
+
+# Secrets and sensitive data
+*.key
+*.pem
+*.crt
+*.p12
+secrets/
+credentials/
+
+# Backup files
+*.backup
+*.bak
+*.old
+
+# Runtime files
+*.pid
+*.sock

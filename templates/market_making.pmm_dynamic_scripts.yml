@@ -1,0 +1,7 @@
+markets: {}
+candles_config: []
+controllers_config:
+- ${strategy_file_path}
+script_file_name: v2_with_controllers.py
+max_global_drawdown: null
+max_controller_drawdown: null

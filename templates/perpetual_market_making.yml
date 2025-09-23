@@ -1,0 +1,33 @@
+template_version: 6
+strategy: perpetual_market_making
+derivative: backpack_perpetual
+market: ${market}-USDT
+leverage: ${leverage}
+position_mode: One-way
+bid_spread: ${bid_spread}
+ask_spread: ${ask_spread}
+minimum_spread: 0.001
+order_refresh_time: 15.0
+order_refresh_tolerance_pct: 0.015
+order_amount: ${order_amount}
+long_profit_taking_spread: ${long_profit_taking_spread}
+short_profit_taking_spread: ${short_profit_taking_spread}
+stop_loss_spread: ${stop_loss_spread}
+time_between_stop_loss_orders: ${time_between_stop_loss_orders}
+stop_loss_slippage_buffer: 0.25
+price_ceiling: -1
+price_floor: -1
+order_levels: ${order_levels}
+order_level_amount: ${order_levels_amount}
+order_level_spread: ${order_level_spread}
+filled_order_delay: 180.0
+order_optimization_enabled: false
+ask_order_optimization_depth: 25.0
+bid_order_optimization_depth: 25.0
+price_source: current_market
+price_type: mid_price
+price_source_derivative:
+price_source_market:
+price_source_custom_api:
+custom_api_update_interval: 5.0
+order_override:
