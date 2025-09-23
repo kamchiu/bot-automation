@@ -11,7 +11,6 @@ LIB_DIR="$SCRIPT_DIR/lib"
 # 加载模块
 source "$LIB_DIR/common.sh"
 source "$LIB_DIR/docker.sh"
-source "$LIB_DIR/config.sh"
 
 # 主函数
 main() {
@@ -19,36 +18,32 @@ main() {
     if [ $# -eq 0 ]; then
         print_error "用法: $0 <配置文件夹名>"
         print_info "示例: $0 ads_31"
-        print_info "将从指定文件夹下读取 bots.csv 和 prepare.py"
+        print_info "将从指定文件夹下读取 bots.csv 并启动机器人"
         exit 1
     fi
 
     local config_folder="$1"
 
-    # 验证配置文件夹
-    if ! validate_config_folder "$config_folder"; then
+    # 检查配置文件夹
+    if [ ! -d "$config_folder" ]; then
+        print_error "配置文件夹不存在: $config_folder"
         exit 1
     fi
 
-    # 检查必要文件
-    if ! check_required_files "$config_folder"; then
+    # 检查bots.csv文件
+    local bots_csv="$config_folder/bots.csv"
+    if [ ! -f "$bots_csv" ]; then
+        print_error "找不到 $bots_csv 文件"
         exit 1
     fi
-
-    # 显示配置信息
-    get_config_info "$config_folder"
 
     # 读取机器人名称
-    local bots_csv="$config_folder/bots.csv"
     local bot_names=()
     if ! read_bot_names "$bots_csv" bot_names; then
         exit 1
     fi
 
-    # 运行prepare.py生成配置
-    if ! run_prepare_script "$config_folder"; then
-        exit 1
-    fi
+    print_info "找到 ${#bot_names[@]} 个机器人: ${bot_names[*]}"
 
     # 获取tmux session
     local session
