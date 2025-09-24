@@ -53,7 +53,7 @@ ssh "$SSH_HOST" "mkdir -p ~/ex-bot"
 
 # 上传conf目录
 echo "上传 conf 目录..."
-rsync -avz --delete "$CONFIG_FOLDER/conf/" "$SSH_HOST:~/ex-bot/conf/"
+rsync -avz "$CONFIG_FOLDER/conf/" "$SSH_HOST:~/ex-bot/conf/"
 
 # 上传docker-compose文件
 echo "上传 docker-compose.override.yml..."
