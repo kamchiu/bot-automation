@@ -1,7 +1,7 @@
 template_version: 6
 strategy: perpetual_market_making
 derivative: backpack_perpetual
-market: ${market}-USDC
+market: ${market}
 leverage: ${leverage}
 position_mode: One-way
 bid_spread: ${bid_spread}

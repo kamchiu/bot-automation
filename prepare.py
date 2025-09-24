@@ -500,7 +500,7 @@ def generate_v2_strategy_files(bots, strategies):
     scripts = "market_making.pmm_dynamic_scripts"
 
     for strategy in strategies:
-        market = strategy.get('market', '').strip()
+        market = strategy.get('market', '').strip().split('-')[0]
         version = strategy.get('version', '').strip()
 
         if not all([market, version]):
@@ -578,7 +578,7 @@ def generate_v1_strategy_files(bots, v1_strategies):
 
     for strategy in v1_strategies:
         version = strategy.get('version', '').strip()
-        market = strategy.get('market', '').strip()
+        market = strategy.get('market', '').strip().split('-')[0]
 
         if not all([version, market]):
             print(f"跳过 v1 策略（缺少必要字段）: {strategy}")

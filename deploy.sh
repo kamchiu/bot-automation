@@ -47,10 +47,6 @@ fi
 
 echo "SSH连接正常"
 
-# 创建远程目录
-echo "创建远程目录..."
-ssh "$SSH_HOST" "mkdir -p ~/ex-bot"
-
 # 上传conf目录
 echo "上传 conf 目录..."
 rsync -avz "$CONFIG_FOLDER/conf/" "$SSH_HOST:~/ex-bot/conf/"

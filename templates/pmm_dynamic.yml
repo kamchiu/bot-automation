@@ -6,7 +6,7 @@ manual_kill_switch: false
 candles_config: []
 initial_positions: []
 connector_name: backpack_perpetual
-trading_pair: ${market}-USDC
+trading_pair: ${market}
 buy_spreads:
 ${buy_spreads}
 sell_spreads:
