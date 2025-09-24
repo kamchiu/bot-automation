@@ -8,57 +8,63 @@ START_INTERVAL_MINUTES=3  # 机器人启动间隔（分钟）
 show_help() {
     echo "HummingBot 机器人启动脚本"
     echo ""
-    echo "用法: $0 <配置文件夹名>"
-    echo ""
-    echo "参数:"
-    echo "  <配置文件夹名>    配置文件夹名称 (如 ads_31)"
-    echo ""
-    echo "示例:"
-    echo "  $0 ads_31                    # 启动 ads_31 配置的机器人"
+    echo "用法: $0"
     echo ""
     echo "功能:"
-    echo "  - 读取配置文件夹下的 bots.csv 文件"
+    echo "  - 读取 ~/ex-bot/docker-compose.override.yml 中的 services"
     echo "  - 每隔 $START_INTERVAL_MINUTES 分钟启动一个机器人"
     echo "  - 使用 tmux 管理机器人会话"
+    echo ""
+    echo "注意: 确保 ~/ex-bot/docker-compose.override.yml 文件存在"
 }
 
-# 检查参数
-if [ $# -eq 0 ]; then
-    show_help
+# 检查是否在正确的目录
+if [ ! -f ~/ex-bot/docker-compose.override.yml ]; then
+    echo "错误: 找不到 ~/ex-bot/docker-compose.override.yml 文件"
+    echo "请确保文件存在并包含 services 配置"
     exit 1
 fi
 
-CONFIG_FOLDER="$1"
+echo "读取 ~/ex-bot/docker-compose.override.yml 中的 services..."
 
-# 检查配置文件夹是否存在
-if [ ! -d "$CONFIG_FOLDER" ]; then
-    echo "错误: 配置文件夹不存在: $CONFIG_FOLDER"
-    exit 1
-fi
+# 切换到ex-bot目录
+cd ~/ex-bot
 
-# 检查bots.csv文件是否存在
-BOTS_CSV="$CONFIG_FOLDER/bots.csv"
-if [ ! -f "$BOTS_CSV" ]; then
-    echo "错误: 找不到 $BOTS_CSV 文件"
-    exit 1
-fi
-
-echo "使用配置文件夹: $CONFIG_FOLDER"
-echo "机器人配置文件: $BOTS_CSV"
-
-# 从bots.csv读取name字段
-echo "从 $BOTS_CSV 读取机器人名称..."
+# 从docker-compose.override.yml读取services
 BOT_NAMES=()
-while IFS=',' read -r name rest; do
-    # 跳过标题行和空行
-    if [ "$name" != "name" ] && [ -n "$name" ]; then
-        BOT_NAMES+=("$name")
+in_services=false
+while IFS= read -r line; do
+    # 检测services段落开始
+    if [[ "$line" =~ ^[[:space:]]*services:[[:space:]]*$ ]]; then
+        in_services=true
+        continue
     fi
-done < "$BOTS_CSV"
+
+    # 如果不在services段落中，跳过
+    if [ "$in_services" = false ]; then
+        continue
+    fi
+
+    # 检测到新的顶级段落，退出services
+    if [[ "$line" =~ ^[a-zA-Z] ]] && [[ ! "$line" =~ ^[[:space:]] ]]; then
+        in_services=false
+        continue
+    fi
+
+    # 在services段落中，匹配服务名
+    if [[ "$line" =~ ^[[:space:]]+([a-zA-Z0-9_-]+):[[:space:]]*$ ]]; then
+        service_name="${BASH_REMATCH[1]}"
+        # 跳过配置项（如 build, logging, environment, volumes 等）
+        if [[ "$service_name" != "build" && "$service_name" != "logging" && "$service_name" != "environment" && "$service_name" != "volumes" && "$service_name" != "options" && "$service_name" != "container_name" ]]; then
+            BOT_NAMES+=("$service_name")
+        fi
+    fi
+done < docker-compose.override.yml
 
 # 检查是否读取到机器人名称
 if [ ${#BOT_NAMES[@]} -eq 0 ]; then
-    echo "错误: 没有从 $BOTS_CSV 中读取到有效的机器人名称"
+    echo "错误: 没有从 docker-compose.override.yml 中读取到有效的服务名称"
+    echo "请检查文件格式，确保有 services 配置"
     exit 1
 fi
 
@@ -147,7 +153,7 @@ echo "="
 echo "启动计划:"
 echo "机器人数量: ${#BOT_NAMES[@]}"
 echo "启动间隔: $START_INTERVAL_MINUTES 分钟"
-local total_time=$(((${#BOT_NAMES[@]} - 1) * START_INTERVAL_MINUTES))
+total_time=$(((${#BOT_NAMES[@]} - 1) * START_INTERVAL_MINUTES))
 echo "总启动时间: $total_time 分钟"
 echo "="
 echo "已启动: ${BOT_NAMES[0]} (立即)"

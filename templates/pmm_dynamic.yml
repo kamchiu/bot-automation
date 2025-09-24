@@ -1,5 +1,5 @@
 id: 7omyyj3sKruwRJDKCVqESctk5YiCsDg41CPJtrktwBMj
-controller_name: ${controllers}
+controller_name: pmm_dynamic
 controller_type: market_making
 total_amount_quote: '${amount}'
 manual_kill_switch: false
@@ -23,7 +23,7 @@ stop_loss: '${stop_loss}'
 take_profit: '${take_profit}'
 time_limit: 1800
 take_profit_order_type: 2
-trailing_stop: 
+trailing_stop:
   activation_price: ${activation_price}
   trailing_delta: ${trailing_delta}
 position_rebalance_threshold_pct: '${position_rebalance_threshold_pct}'

@@ -50,6 +50,17 @@ ssh $USERNAME@$SERVER_IP << 'EOF'
     newgrp docker
 
     echo "Docker安装完成"
+
+    sudo apt update
+    sudo apt install at
+    # 启动服务
+    sudo systemctl start atd
+
+    # 设置开机自启
+    sudo systemctl enable atd
+
+    # 检查服务状态
+    sudo systemctl status atd
 EOF
 
 echo "=========================================="
