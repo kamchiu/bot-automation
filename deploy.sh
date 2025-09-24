@@ -55,7 +55,20 @@ rsync -avz "$CONFIG_FOLDER/conf/" "$SSH_HOST:~/ex-bot/conf/"
 echo "上传 docker-compose.override.yml..."
 scp "$CONFIG_FOLDER/docker-compose.override.yml" "$SSH_HOST:~/ex-bot/docker-compose.override.yml"
 
+# 上传脚本文件
+echo "上传 start-bot.sh..."
+scp "start-bot.sh" "$SSH_HOST:~/"
+
+echo "上传 stop-pending.sh..."
+scp "stop-pending.sh" "$SSH_HOST:~/"
+
+echo "上传 bot-cmd.sh..."
+scp "bot-cmd.sh" "$SSH_HOST:~/"
+
 echo "部署完成！"
 echo "远程文件位置:"
 echo "  ~/ex-bot/conf/"
 echo "  ~/ex-bot/docker-compose.override.yml"
+echo "  ~/start-bot.sh"
+echo "  ~/stop-pending.sh"
+echo "  ~/bot-cmd.sh"
