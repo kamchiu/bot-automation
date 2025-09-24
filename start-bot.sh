@@ -90,7 +90,7 @@ start_bot() {
 
     # 在对应窗口里执行启动命令
     tmux send-keys -t "$SESSION:$bot_name" \
-        "cd ~/ex-bot && docker compose up $bot_name -d && docker attach \$(docker ps -qf name=$bot_name)" C-m
+        "cd ~/ex-bot && docker compose up $bot_name -d && docker attach $bot_name" C-m
 
     echo "机器人 $bot_name 启动命令已发送"
 }
@@ -123,7 +123,7 @@ fi
 
 # 在对应窗口里执行启动命令
 tmux send-keys -t "\$SESSION:\$BOT_NAME" \
-    "cd ~/ex-bot && docker compose up \$BOT_NAME -d && docker attach \$(docker ps -qf name=\$BOT_NAME)" C-m
+    "cd ~/ex-bot && docker compose up \$BOT_NAME -d && docker attach \$BOT_NAME" C-m
 
 echo "机器人 \$BOT_NAME 启动完成"
 # 清理临时脚本
