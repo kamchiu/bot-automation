@@ -11,11 +11,6 @@ scp ~/.ssh/id_ed25519.pub ubuntu@server_ip:/home/ubuntu/.ssh
 scp ~/.ssh/id_ed25519 ubuntu@server_ip:/home/ubuntu/.ssh
 ```
 
-### 上传prepare
-```bash
-scp -r ~/prepare ubuntu@server_ip:/home/ubuntu
-```
-
 ### 2 连接服务器
 ```bash
 # 连接到服务器

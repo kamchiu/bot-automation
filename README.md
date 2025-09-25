@@ -21,6 +21,8 @@ hummingbot-prepare/
 │   └── config.sh                 # 配置管理函数
 ├── start-bot.sh                  # 机器人启动脚本（延迟启动）
 ├── stop-pending.sh               # 延迟任务清理脚本
+├── bot-cmd.sh                    # 机器人命令执行脚本
+├── bot-manager.sh                # 机器人管理工具
 ├── setup-ex-bot.sh               # 服务器环境搭建脚本
 ├── deploy.sh                     # 配置部署脚本
 ├── prepare.py                    # 配置生成脚本
@@ -50,6 +52,8 @@ cd hummingbot-prepare
 chmod +x lib/*.sh
 chmod +x start-bot.sh
 chmod +x stop-pending.sh
+chmod +x bot-cmd.sh
+chmod +x bot-manager.sh
 chmod +x setup-ex-bot.sh
 chmod +x deploy.sh
 ```
@@ -130,7 +134,7 @@ Host ads_32
 - 测试SSH连接
 - 上传 `conf/` 目录到 `~/ex-bot/conf/`
 - 上传 `docker-compose.override.yml` 到 `~/ex-bot/`
-- 上传 `start-bot.sh` 和 `stop-pending.sh` 到 `~/`
+- 上传 `start-bot.sh`、`stop-pending.sh`、`bot-cmd.sh` 和 `bot-manager.sh` 到 `~/`
 
 ## 🎯 使用方法
 
@@ -168,6 +172,74 @@ cd ~
 
 # 停止所有待执行的启动任务
 ./stop-pending.sh --all
+```
+
+### 机器人管理工具
+
+使用 `bot-manager.sh` 进行全面的机器人管理：
+
+```bash
+# 在服务器上执行
+ssh ads_31
+cd ~
+
+# 启动指定机器人
+./bot-manager.sh start bot1
+
+# 停止指定机器人
+./bot-manager.sh stop bot1
+
+# 启动所有未运行的机器人
+./bot-manager.sh start-all
+
+# 停止所有运行的机器人
+./bot-manager.sh stop-all
+
+# 重启指定机器人
+./bot-manager.sh restart bot1
+
+# 重启所有机器人
+./bot-manager.sh restart-all
+
+# 查看所有机器人状态
+./bot-manager.sh status
+
+# 查看指定机器人状态
+./bot-manager.sh status bot1
+
+# 向所有运行中的机器人发送命令
+./bot-manager.sh cmd stop
+
+# 向指定机器人发送命令
+./bot-manager.sh cmd bot1 restart
+
+# 列出所有机器人
+./bot-manager.sh list
+
+# 显示帮助信息
+./bot-manager.sh help
+```
+
+### 机器人命令执行
+
+使用 `bot-cmd.sh` 向机器人发送命令：
+
+```bash
+# 在服务器上执行
+ssh ads_31
+cd ~
+
+# 停止所有机器人
+./bot-cmd.sh stop
+
+# 重启所有机器人
+./bot-cmd.sh restart
+
+# 查看所有机器人日志
+./bot-cmd.sh logs
+
+# 显示帮助信息
+./bot-cmd.sh --help
 ```
 
 
@@ -273,6 +345,19 @@ ssh ads_31
 - SSH密钥配置
 - Docker和at服务安装
 - 用户权限配置
+
+#### bot-manager.sh
+- 全面的机器人管理工具
+- 支持启动/停止指定机器人或所有机器人
+- 实时状态查看和监控
+- 集成命令发送功能
+- 智能机器人发现和验证
+
+#### bot-cmd.sh
+- 向机器人发送命令的专用工具
+- 支持向所有或指定机器人发送命令
+- 与tmux会话集成
+- 简化的命令执行接口
 
 ## 🐳 Docker 支持
 
