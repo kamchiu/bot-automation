@@ -275,18 +275,23 @@ bot2,conf_v1_ads_23_doge.yml,,,backpack_perpetual,your_api_key,your_secret_key,y
 ### strategy.csv
 
 ```csv
-market,version,amount,buy_spreads
-BTC,0.1,2000,"1.6,2.4,3.3"
-APT,0.2,1500,"2.0,3.0,4.0"
+version,market,amount,buy_spreads,sell_spreads,buy_amounts_pct,sell_amounts_pct,executor_refresh_time,cooldown_time,stop_loss,take_profit,activation_price,trailing_delta,candles_connector,candles_trading_pair,interval,macd_fast,macd_slow,macd_signal,natr_length,position_rebalance_threshold_pct
+ads_1,APT,500,"""1.8,2.5,3.4""","""1.8,2.5,3.4""","""0.13,0.27,0.6""","""0.13,0.27,0.6""",600,600,0.004,0.004,0.0032,0.0003,binance_perpetual,APT-USDT,3m,21,42,9,14,0.01
 ```
+
+**必需列**: `version`, `market`
+**可选列**: `amount`, `buy_spreads`, `sell_spreads`, `buy_amounts_pct`, `sell_amounts_pct`, `executor_refresh_time`, `cooldown_time`, `stop_loss`, `take_profit`, `activation_price`, `trailing_delta`, `candles_connector`, `candles_trading_pair`, `interval`, `macd_fast`, `macd_slow`, `macd_signal`, `natr_length`, `position_rebalance_threshold_pct`
 
 ### strategies-v1.csv
 
 ```csv
-version,market,order_amount,leverage,bid_spread,ask_spread
-ads_20,APT,60,10,0.08,0.08
-ads_21,DOGE,100,5,0.05,0.05
+version,market,order_amount,leverage,bid_spread,ask_spread,long_profit_taking_spread,short_profit_taking_spread,stop_loss_spread,time_between_stop_loss_orders,order_levels,order_level_spread,order_levels_amount
+ads_20,APT,60,10,0.08,0.08,0.2,0.2,0.4,15,3,0.001,-10
+ads_23,DOGE,100,10,0.08,0.08,0.2,0.3,0.2,15,1,,
 ```
+
+**必需列**: `version`, `market`
+**可选列**: `order_amount`, `leverage`, `bid_spread`, `ask_spread`, `long_profit_taking_spread`, `short_profit_taking_spread`, `stop_loss_spread`, `time_between_stop_loss_orders`, `order_levels`, `order_level_spread`, `order_levels_amount`
 
 ## 🔄 完整工作流程
 
