@@ -1,1 +1,16 @@
+# 核心依赖
 PyYAML>=6.0
+
+# 加密相关依赖 (HummingBot 兼容)
+eth-keyfile>=0.5.1
+eth-account>=0.8.0
+
+# 数据处理 (用于CSV文件处理)
+pandas>=1.5.0
+
+# 可选依赖 (用于增强功能)
+cryptography>=3.4.8
+
+# 开发依赖 (可选)
+# pytest>=7.0.0  # 用于测试
+# black>=22.0.0   # 用于代码格式化

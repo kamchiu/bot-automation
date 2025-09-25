@@ -1,24 +1,20 @@
 # HummingBot 配置生成器
 
-一个用于管理多个 HummingBot 服务器配置的模块化工具集。
+一个用于管理多个 HummingBot 服务器配置的完整工具集。
 
 ## 🚀 功能特性
 
 - **多服务器支持**: 为不同的服务器创建独立的配置文件夹
-- **模块化设计**: 使用 bash 模块化架构，代码可复用、易维护
 - **自动化配置**: 从 CSV 文件自动生成 HummingBot 配置文件
 - **Docker 集成**: 支持 Docker Compose 管理多个机器人容器
 - **tmux 管理**: 使用 tmux 管理多个机器人会话
 - **延迟启动**: 支持机器人分批启动（默认3分钟间隔），避免资源冲突
+- **智能管理**: 提供全面的机器人管理工具，支持启动、停止、状态查看和命令发送
 
 ## 📁 项目结构
 
 ```
 hummingbot-prepare/
-├── lib/                          # 模块库
-│   ├── common.sh                 # 通用函数库
-│   ├── docker.sh                 # Docker 相关函数
-│   └── config.sh                 # 配置管理函数
 ├── start-bot.sh                  # 机器人启动脚本（延迟启动）
 ├── stop-pending.sh               # 延迟任务清理脚本
 ├── bot-cmd.sh                    # 机器人命令执行脚本
@@ -49,7 +45,6 @@ cd hummingbot-prepare
 ### 2. 设置权限
 
 ```bash
-chmod +x lib/*.sh
 chmod +x start-bot.sh
 chmod +x stop-pending.sh
 chmod +x bot-cmd.sh
@@ -75,7 +70,29 @@ mkdir ads_32
 - `strategy.csv` - v2 策略配置
 - `strategies-v1.csv` - v1 策略配置（可选）
 
-### 5. 运行配置生成
+### 5. 准备 Python 环境
+
+#### 方法一：使用 Conda 环境（推荐）
+
+```bash
+# 激活 HummingBot conda 环境
+conda activate hummingbot
+
+# 安装额外依赖
+pip install -r requirements.txt
+```
+
+#### 方法二：手动安装依赖
+
+```bash
+# 安装 Python 依赖包
+pip install PyYAML eth-keyfile eth-account pandas cryptography
+
+# 或者使用 requirements.txt
+pip install -r requirements.txt
+```
+
+### 6. 运行配置生成
 
 ```bash
 # 生成 ads_31 的配置
@@ -85,7 +102,9 @@ python prepare.py ads_31
 python prepare.py ads_32
 ```
 
-### 6. 服务器环境搭建
+**注意**: 确保在运行 `prepare.py` 之前已经激活了正确的 Python 环境并安装了所有依赖包。
+
+### 7. 服务器环境搭建
 
 使用 `setup-ex-bot.sh` 脚本快速搭建服务器环境：
 
@@ -100,7 +119,7 @@ python prepare.py ads_32
 - 安装Docker和at服务
 - 配置用户权限
 
-### 7. 配置 SSH 连接
+### 8. 配置 SSH 连接
 
 在 `~/.ssh/config` 文件中配置服务器连接信息：
 
@@ -122,7 +141,7 @@ Host ads_32
     IdentityFile ~/.ssh/id_ed25519
 ```
 
-### 8. 部署配置
+### 9. 部署配置
 
 ```bash
 # 部署 ads_31 配置（SSH配置中的主机名必须与配置文件夹名相同）
@@ -273,54 +292,40 @@ ads_21,DOGE,100,5,0.05,0.05
 
 ### 1. 环境准备
 ```bash
-# 1. 搭建服务器环境
+# 1. 准备 Python 环境
+conda activate hummingbot  # 或手动安装依赖
+pip install -r requirements.txt
+
+# 2. 搭建服务器环境
 ./setup-ex-bot.sh 192.168.1.31 ubuntu
 
-# 2. 配置SSH连接
+# 3. 配置SSH连接
 # 编辑 ~/.ssh/config 文件
 ```
 
 ### 2. 配置生成和部署
 ```bash
-# 3. 生成配置文件
+# 4. 生成配置文件
 python prepare.py ads_31
 
-# 4. 部署到服务器
+# 5. 部署到服务器
 ./deploy.sh ads_31
 ```
 
 ### 3. 机器人管理
 ```bash
-# 5. 连接到服务器
+# 6. 连接到服务器
 ssh ads_31
 
-# 6. 启动机器人（延迟启动）
+# 7. 启动机器人（延迟启动）
 ./start-bot.sh
 
-# 7. 管理延迟任务（如需要）
+# 8. 管理延迟任务（如需要）
 ./stop-pending.sh --list
 ./stop-pending.sh --all  # 停止所有延迟任务
 ```
 
-## 🔧 模块化架构
-
-### lib/common.sh
-- 彩色输出函数
-- 文件/目录检查
-- CSV 数据读取
-- tmux 会话管理
-
-### lib/docker.sh
-- 容器启动/停止/重启
-- 容器状态检查
-- Docker Compose 集成
-
-### lib/config.sh
-- 配置文件夹验证
-- 必要文件检查
-- 脚本执行管理
-
-### 核心脚本功能
+## 🔧 核心脚本功能
 
 #### start-bot.sh
 - 读取docker-compose.override.yml中的服务列表
@@ -375,17 +380,39 @@ services:
 
 ## 📝 开发指南
 
-### 添加新模块
+### 开发环境准备
 
-1. 在 `lib/` 目录下创建新的 `.sh` 文件
-2. 定义相关函数
-3. 在主脚本中使用 `source` 加载
+```bash
+# 激活 HummingBot conda 环境
+conda activate hummingbot
 
-### 添加新功能
+# 安装开发依赖
+pip install -r requirements.txt
 
-1. 在对应模块中添加函数
-2. 在主脚本中调用函数
-3. 更新文档
+# 可选：安装开发工具
+pip install pytest black  # 测试和代码格式化
+```
+
+### 添加新脚本
+
+1. 在项目根目录下创建新的 `.sh` 文件
+2. 定义相关函数和功能
+3. 添加适当的错误处理和帮助信息
+4. 更新文档和使用说明
+
+### 修改现有脚本
+
+1. 在对应的脚本文件中添加新功能
+2. 保持向后兼容性
+3. 更新帮助信息和文档
+4. 测试新功能的正确性
+
+### Python 脚本开发
+
+1. 确保在正确的 Python 环境中开发
+2. 使用 `requirements.txt` 管理依赖
+3. 遵循 HummingBot 的编码规范
+4. 测试加密功能的兼容性
 
 ## 🤝 贡献
 
