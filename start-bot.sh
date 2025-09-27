@@ -3,6 +3,7 @@ set -e
 
 # 配置变量
 START_INTERVAL_MINUTES=3  # 机器人启动间隔（分钟）
+RANDOMIZE_ORDER=true      # 是否随机化启动顺序
 
 # 显示帮助信息
 show_help() {
@@ -14,6 +15,7 @@ show_help() {
     echo "  - 读取 ~/ex-bot/docker-compose.override.yml 中的 services"
     echo "  - 每隔 $START_INTERVAL_MINUTES 分钟启动一个机器人"
     echo "  - 使用 tmux 管理机器人会话"
+    echo "  - 随机化启动顺序 (可通过 RANDOMIZE_ORDER 变量控制)"
     echo ""
     echo "注意: 确保 ~/ex-bot/docker-compose.override.yml 文件存在"
 }
@@ -69,6 +71,28 @@ if [ ${#BOT_NAMES[@]} -eq 0 ]; then
 fi
 
 echo "找到 ${#BOT_NAMES[@]} 个机器人: ${BOT_NAMES[*]}"
+
+# 随机化启动顺序
+if [ "$RANDOMIZE_ORDER" = true ]; then
+    echo "随机化启动顺序..."
+    # 使用shuf命令随机打乱数组
+    if command -v shuf >/dev/null 2>&1; then
+        # 如果有shuf命令，使用它
+        BOT_NAMES=($(printf '%s\n' "${BOT_NAMES[@]}" | shuf))
+    else
+        # 如果没有shuf命令，使用Fisher-Yates洗牌算法
+        local i j temp
+        for ((i=${#BOT_NAMES[@]}-1; i>0; i--)); do
+            j=$((RANDOM % (i+1)))
+            temp="${BOT_NAMES[i]}"
+            BOT_NAMES[i]="${BOT_NAMES[j]}"
+            BOT_NAMES[j]="$temp"
+        done
+    fi
+    echo "随机化后的启动顺序: ${BOT_NAMES[*]}"
+else
+    echo "使用原始启动顺序: ${BOT_NAMES[*]}"
+fi
 
 # 获取当前tmux session
 SESSION=$(tmux display-message -p '#S' 2>/dev/null || echo "bot")
@@ -153,6 +177,7 @@ echo "="
 echo "启动计划:"
 echo "机器人数量: ${#BOT_NAMES[@]}"
 echo "启动间隔: $START_INTERVAL_MINUTES 分钟"
+echo "随机化顺序: $RANDOMIZE_ORDER"
 total_time=$(((${#BOT_NAMES[@]} - 1) * START_INTERVAL_MINUTES))
 echo "总启动时间: $total_time 分钟"
 echo "="
