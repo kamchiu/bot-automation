@@ -1,5 +1,5 @@
 id: 7omyyj3sKruwRJDKCVqESctk5YiCsDg41CPJtrktwBMj
-controller_name: pmm_dynamic
+controller_name: pmm_dynamic_time_based
 controller_type: market_making
 total_amount_quote: '${amount}'
 manual_kill_switch: false
@@ -35,3 +35,14 @@ macd_fast: ${macd_fast}
 macd_slow: ${macd_slow}
 macd_signal: ${macd_signal}
 natr_length: ${natr_length}
+trading_start_time: "04:00"
+trading_end_time: "23:00"
+trading_days:
+- 1
+- 2
+- 3
+- 4
+- 5
+- 6
+- 7
+timezone: "Asia/Shanghai"
