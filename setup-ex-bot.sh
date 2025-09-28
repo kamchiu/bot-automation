@@ -48,6 +48,9 @@ ssh $USERNAME@$SERVER_IP << 'EOF'
     newgrp docker
 
     echo "Docker安装完成"
+    echo "解压backpack.tar..."
+    docker load -i backpack.tar
+    echo "backpack.tar解压完成"
 
     sudo apt update
     sudo apt install at
