@@ -35,8 +35,8 @@ macd_fast: ${macd_fast}
 macd_slow: ${macd_slow}
 macd_signal: ${macd_signal}
 natr_length: ${natr_length}
-trading_start_time: "04:00"
-trading_end_time: "23:00"
+trading_start_time: '${trading_start_time}'
+trading_end_time: '${trading_end_time}'
 trading_days:
 - 1
 - 2
