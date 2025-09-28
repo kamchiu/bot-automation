@@ -111,7 +111,7 @@ start_bot() {
     echo "准备启动机器人: $bot_name (延迟 ${delay_minutes} 分钟)"
 
     # 如果窗口不存在则创建
-    if ! tmux list-windows -t "$SESSION" | grep -q "$bot_name"; then
+    if ! tmux list-windows -t "$SESSION" -F "#{window_name}" | grep -Fxq "$bot_name"; then
         tmux new-window -t "$SESSION:" -n "$bot_name"
         echo "创建新窗口: $bot_name"
     else
@@ -146,9 +146,11 @@ BOT_NAME="$bot_name"
 echo "延迟启动机器人: \$BOT_NAME"
 
 # 如果窗口不存在则创建
-if ! tmux list-windows -t "\$SESSION" | grep -q "\$BOT_NAME"; then
+if ! tmux list-windows -t "\$SESSION" -F "#{window_name}" | grep -Fxq "\$BOT_NAME"; then
     tmux new-window -t "\$SESSION:" -n "\$BOT_NAME"
     echo "创建新窗口: \$BOT_NAME"
+else
+    echo "窗口已存在: \$BOT_NAME"
 fi
 
 # 在对应窗口里执行启动命令
