@@ -20,8 +20,6 @@ ssh username@server_ip
 ### 进入服务器后
 
 ```bash
-# 拉取ex-bot代码
-git clone -b bpx git@github.com:way2freedom/ex-bot.git
 
 # 安装docker
 curl -fsSL https://get.docker.com -o get-docker.sh
@@ -43,5 +41,9 @@ sudo systemctl enable atd
 
 # 检查服务状态
 sudo systemctl status atd
+
+
+# 拉取ex-bot代码
+git clone -b bpx git@github.com:way2freedom/ex-bot.git
 
 ```

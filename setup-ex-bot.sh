@@ -30,14 +30,12 @@ echo "正在复制私钥..."
 scp ~/.ssh/id_ed25519.pub $USERNAME@$SERVER_IP:~/.ssh/
 scp ~/.ssh/id_ed25519 $USERNAME@$SERVER_IP:~/.ssh/
 
+scp ~/ex-bot/backpack.tar $USERNAME@$SERVER_IP:~/
+
 # 2. 连接服务器并执行安装命令
 echo "步骤2: 连接服务器并执行安装..."
 ssh $USERNAME@$SERVER_IP << 'EOF'
     echo "正在服务器上执行安装命令..."
-
-    # 拉取ex-bot代码
-    echo "拉取ex-bot代码..."
-    git clone -b bpx git@github.com:way2freedom/ex-bot.git
 
     # 安装docker
     echo "安装Docker..."
@@ -61,6 +59,10 @@ ssh $USERNAME@$SERVER_IP << 'EOF'
 
     # 检查服务状态
     sudo systemctl status atd
+
+    # 拉取ex-bot代码
+    echo "拉取ex-bot代码..."
+    git clone -b bpx git@github.com:way2freedom/ex-bot.git
 EOF
 
 echo "=========================================="
