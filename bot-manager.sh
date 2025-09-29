@@ -216,6 +216,7 @@ start_all_stopped() {
             tmux send-keys -t "$session:$bot_name" \
                 "cd ~/ex-bot && docker compose up $bot_name -d && docker attach $bot_name" C-m
 
+            sleep 2
             if is_bot_running "$bot_name"; then
                 echo "✅ $bot_name 启动成功"
                 ((started_count++))
