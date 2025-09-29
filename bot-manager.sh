@@ -8,9 +8,9 @@ show_help() {
     echo "用法: $0 <命令> [参数]"
     echo ""
     echo "命令:"
-    echo "  start <bot_name>        启动指定的机器人"
+    echo "  start <bot_name>        启动指定的机器人 (在tmux窗口中)"
     echo "  stop <bot_name>         停止指定的机器人"
-    echo "  start-all               启动所有未运行的机器人"
+    echo "  start-all               启动所有未运行的机器人 (在tmux窗口中)"
     echo "  stop-all                停止所有运行的机器人"
     echo "  restart <bot_name>      重启指定的机器人"
     echo "  restart-all             重启所有机器人"
@@ -22,13 +22,18 @@ show_help() {
     echo "  help                    显示此帮助信息"
     echo ""
     echo "示例:"
-    echo "  $0 start bot1            # 启动 bot1"
+    echo "  $0 start bot1            # 启动 bot1 (在tmux窗口中)"
     echo "  $0 stop bot1             # 停止 bot1"
-    echo "  $0 start-all             # 启动所有未运行的机器人"
+    echo "  $0 start-all             # 启动所有未运行的机器人 (在tmux窗口中)"
     echo "  $0 status                # 查看所有机器人状态"
     echo "  $0 cmd stop              # 向所有机器人发送stop命令"
     echo "  $0 cmd bot1 restart      # 向bot1发送restart命令"
     echo "  $0 list                  # 列出所有机器人"
+    echo ""
+    echo "tmux 管理:"
+    echo "  tmux attach              # 连接到机器人session"
+    echo "  tmux list-windows        # 查看所有机器人窗口"
+    echo "  tmux select-window -t bot1  # 切换到bot1窗口"
     echo ""
     echo "注意: 确保 ~/ex-bot/docker-compose.override.yml 文件存在"
 }
@@ -120,8 +125,28 @@ start_bot() {
     fi
 
     echo "启动机器人: $bot_name"
-    cd ~/ex-bot
-    docker compose up "$bot_name" -d
+
+    # 获取当前tmux session
+    local session
+    session=$(tmux display-message -p '#S' 2>/dev/null || echo "bot")
+
+    # 如果tmux session不存在，创建一个新的
+    if ! tmux has-session -t "$session" 2>/dev/null; then
+        echo "创建新的tmux session: $session"
+        tmux new-session -d -s "$session"
+    fi
+
+    # 如果窗口不存在则创建
+    if ! tmux list-windows -t "$session" -F "#{window_name}" | grep -Fxq "$bot_name"; then
+        tmux new-window -t "$session:" -n "$bot_name"
+        echo "创建新窗口: $bot_name"
+    else
+        echo "窗口已存在: $bot_name"
+    fi
+
+    # 在对应窗口里执行启动命令
+    tmux send-keys -t "$session:$bot_name" \
+        "cd ~/ex-bot && docker compose up $bot_name -d && docker attach $bot_name" C-m
 
     if is_bot_running "$bot_name"; then
         echo "✅ 机器人 '$bot_name' 启动成功"
@@ -165,11 +190,32 @@ start_all_stopped() {
 
     echo "检查并启动所有未运行的机器人..."
 
+    # 获取当前tmux session
+    local session
+    session=$(tmux display-message -p '#S' 2>/dev/null || echo "bot")
+
+    # 如果tmux session不存在，创建一个新的
+    if ! tmux has-session -t "$session" 2>/dev/null; then
+        echo "创建新的tmux session: $session"
+        tmux new-session -d -s "$session"
+    fi
+
     for bot_name in "${bot_names[@]}"; do
         if ! is_bot_running "$bot_name"; then
             echo "启动机器人: $bot_name"
-            cd ~/ex-bot
-            docker compose up "$bot_name" -d
+
+            # 如果窗口不存在则创建
+            if ! tmux list-windows -t "$session" -F "#{window_name}" | grep -Fxq "$bot_name"; then
+                tmux new-window -t "$session:" -n "$bot_name"
+                echo "创建新窗口: $bot_name"
+            else
+                echo "窗口已存在: $bot_name"
+            fi
+
+            # 在对应窗口里执行启动命令
+            tmux send-keys -t "$session:$bot_name" \
+                "cd ~/ex-bot && docker compose up $bot_name -d && docker attach $bot_name" C-m
+
             if is_bot_running "$bot_name"; then
                 echo "✅ $bot_name 启动成功"
                 ((started_count++))
@@ -182,6 +228,8 @@ start_all_stopped() {
     done
 
     echo "启动完成，共启动了 $started_count 个机器人"
+    echo "使用 'tmux attach' 连接到session查看机器人状态"
+    echo "使用 'tmux list-windows' 查看所有窗口"
 }
 
 # 停止所有运行的机器人
