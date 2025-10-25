@@ -4,6 +4,7 @@ set -e
 # 配置变量
 START_INTERVAL_MINUTES=3  # 机器人启动间隔（分钟）
 RANDOMIZE_ORDER=true      # 是否随机化启动顺序
+BOTS_PER_BATCH=2         # 每次启动的机器人数量（批次大小），可修改为1,2,3...
 
 # 显示帮助信息
 show_help() {
@@ -81,7 +82,9 @@ if [ "$RANDOMIZE_ORDER" = true ]; then
         BOT_NAMES=($(printf '%s\n' "${BOT_NAMES[@]}" | shuf))
     else
         # 如果没有shuf命令，使用Fisher-Yates洗牌算法
-        local i j temp
+        i=0
+        j=0
+        temp=""
         for ((i=${#BOT_NAMES[@]}-1; i>0; i--)); do
             j=$((RANDOM % (i+1)))
             temp="${BOT_NAMES[i]}"
@@ -125,21 +128,33 @@ start_bot() {
     echo "机器人 $bot_name 启动命令已发送"
 }
 
-# 启动第一个机器人（立即启动）
-start_bot "${BOT_NAMES[0]}" 0
+# 使用批次（每批次 BOTS_PER_BATCH 个）来启动机器人
+total_bots=${#BOT_NAMES[@]}
+if [ "$BOTS_PER_BATCH" -lt 1 ]; then
+    echo "BOTS_PER_BATCH 必须 >= 1，当前为 $BOTS_PER_BATCH，改为1"
+    BOTS_PER_BATCH=1
+fi
 
-# 为剩余的机器人设置延迟启动
-for i in "${!BOT_NAMES[@]}"; do
-    if [ $i -gt 0 ]; then
+total_batches=$(( (total_bots + BOTS_PER_BATCH - 1) / BOTS_PER_BATCH ))
+for ((batch=0; batch<total_batches; batch++)); do
+    delay_minutes=$(( batch * START_INTERVAL_MINUTES ))
+    start_index=$(( batch * BOTS_PER_BATCH ))
+    end_index=$(( start_index + BOTS_PER_BATCH - 1 ))
+    if [ $end_index -ge $((total_bots-1)) ]; then
+        end_index=$((total_bots-1))
+    fi
+
+    echo "处理第 $((batch+1)) 批: 索引 $start_index..$end_index，延迟 ${delay_minutes} 分钟"
+
+    for ((i=start_index; i<=end_index; i++)); do
         bot_name="${BOT_NAMES[$i]}"
-        delay_minutes=$((i * START_INTERVAL_MINUTES))
-
-        # 使用at命令在指定时间后启动机器人
-        echo "设置 $bot_name 在 $delay_minutes 分钟后启动"
-
-        # 创建临时脚本用于延迟启动
-        temp_script="/tmp/start_${bot_name}_$$.sh"
-        cat > "$temp_script" << EOF
+        if [ $delay_minutes -eq 0 ]; then
+            # 立即启动
+            start_bot "$bot_name" 0
+        else
+            echo "设置 $bot_name 在 $delay_minutes 分钟后启动"
+            temp_script="/tmp/start_${bot_name}_$$.sh"
+            cat > "$temp_script" << EOF
 #!/bin/bash
 SESSION=\$(tmux display-message -p '#S' 2>/dev/null || echo "default")
 BOT_NAME="$bot_name"
@@ -162,17 +177,16 @@ echo "机器人 \$BOT_NAME 启动完成"
 rm -f "$temp_script"
 EOF
 
-        chmod +x "$temp_script"
-
-        # 使用at命令调度延迟启动
-        echo "bash $temp_script" | at now + ${delay_minutes} minutes 2>/dev/null || {
-            echo "警告: at命令不可用，使用sleep代替"
-            (
-                sleep $((delay_minutes * 60))
-                bash "$temp_script"
-            ) &
-        }
-    fi
+            chmod +x "$temp_script"
+            echo "bash $temp_script" | at now + ${delay_minutes} minutes 2>/dev/null || {
+                echo "警告: at命令不可用，使用sleep代替"
+                (
+                    sleep $((delay_minutes * 60))
+                    bash "$temp_script"
+                ) &
+            }
+        fi
+    done
 done
 
 echo "="
@@ -180,15 +194,19 @@ echo "启动计划:"
 echo "机器人数量: ${#BOT_NAMES[@]}"
 echo "启动间隔: $START_INTERVAL_MINUTES 分钟"
 echo "随机化顺序: $RANDOMIZE_ORDER"
-total_time=$(((${#BOT_NAMES[@]} - 1) * START_INTERVAL_MINUTES))
-echo "总启动时间: $total_time 分钟"
+# 计算总启动时间（以分钟为单位），每个批次之间间隔 START_INTERVAL_MINUTES
+total_time=$(( (total_bots - 1) / BOTS_PER_BATCH * START_INTERVAL_MINUTES ))
+echo "总启动时间: $total_time 分钟 (每批 $BOTS_PER_BATCH 个)"
 echo "="
-echo "已启动: ${BOT_NAMES[0]} (立即)"
-for i in "${!BOT_NAMES[@]}"; do
-    if [ $i -gt 0 ]; then
-        delay_minutes=$((i * START_INTERVAL_MINUTES))
-        echo "计划启动: ${BOT_NAMES[$i]} (${delay_minutes}分钟后)"
+echo "启动计划（按批次）:"
+for ((batch=0; batch<total_batches; batch++)); do
+    delay_minutes=$(( batch * START_INTERVAL_MINUTES ))
+    start_index=$(( batch * BOTS_PER_BATCH ))
+    end_index=$(( start_index + BOTS_PER_BATCH - 1 ))
+    if [ $end_index -ge $((total_bots-1)) ]; then
+        end_index=$((total_bots-1))
     fi
+    echo "  第 $((batch+1)) 批 (延迟 ${delay_minutes} 分钟): ${BOT_NAMES[@]:$start_index:$((end_index-start_index+1))}"
 done
 echo "="
 echo "使用 'tmux attach' 连接到session查看机器人状态"
