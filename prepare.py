@@ -683,6 +683,17 @@ def main():
     if files_changed:
         clean_generated_files()
 
+        # 在生成新的配置文件之前，删除整个输出目录（例如 conf 文件夹），
+        # 以确保生成的是干净的状态。
+        # 安全检查：仅当输出目录的 basename 与 DEFAULT_CONF_OUTPUT_DIR 相同时才删除，避免误删。
+        try:
+            normalized_base = os.path.basename(os.path.normpath(CONF_OUTPUT_DIR))
+            if normalized_base == DEFAULT_CONF_OUTPUT_DIR and os.path.exists(CONF_OUTPUT_DIR) and os.path.isdir(CONF_OUTPUT_DIR):
+                shutil.rmtree(CONF_OUTPUT_DIR)
+                print(f"已删除输出目录: {CONF_OUTPUT_DIR}")
+        except Exception as e:
+            print(f"删除输出目录 {CONF_OUTPUT_DIR} 时出错: {e}")
+
     # ---------- 1. 读取 bots.csv ----------
     print("读取 bots.csv...")
     bots = []
