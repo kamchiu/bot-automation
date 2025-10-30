@@ -4,7 +4,7 @@ set -e
 # 配置变量
 START_INTERVAL_MINUTES=3  # 机器人启动间隔（分钟）
 RANDOMIZE_ORDER=true      # 是否随机化启动顺序
-BOTS_PER_BATCH=2         # 每次启动的机器人数量（批次大小），可修改为1,2,3...
+BOTS_PER_BATCH=1         # 每次启动的机器人数量（批次大小），可修改为1,2,3...
 
 # 显示帮助信息
 show_help() {
@@ -72,6 +72,35 @@ if [ ${#BOT_NAMES[@]} -eq 0 ]; then
 fi
 
 echo "找到 ${#BOT_NAMES[@]} 个机器人: ${BOT_NAMES[*]}"
+
+# 检查哪些服务当前未在运行（基于 docker ps）——只对未运行的服务进行启动
+NOT_RUNNING_BOTS=()
+if command -v docker >/dev/null 2>&1; then
+    # 获取当前运行容器的名称列表
+    RUNNING_NAMES=$(docker ps --format '{{.Names}}' 2>/dev/null || true)
+
+    for svc in "${BOT_NAMES[@]}"; do
+        # 如果在运行列表中找到完全匹配的容器名，则认为正在运行
+        if echo "$RUNNING_NAMES" | grep -xq "$svc"; then
+            echo "已在运行: $svc"
+        else
+            NOT_RUNNING_BOTS+=("$svc")
+        fi
+    done
+else
+    echo "警告: docker 命令不可用，无法检测运行状态。将尝试启动所有在 compose 文件中定义的服务。"
+    NOT_RUNNING_BOTS=("${BOT_NAMES[@]}")
+fi
+
+if [ ${#NOT_RUNNING_BOTS[@]} -eq 0 ]; then
+    echo "所有在 docker-compose.override.yml 中定义的服务均已在运行，未找到需要启动的服务。"
+    exit 0
+fi
+
+echo "需要启动的服务 (${#NOT_RUNNING_BOTS[@]}): ${NOT_RUNNING_BOTS[*]}"
+
+# 将 BOT_NAMES 替换为仅包含未运行的服务，后续逻辑复用原有批次启动流程
+BOT_NAMES=("${NOT_RUNNING_BOTS[@]}")
 
 # 随机化启动顺序
 if [ "$RANDOMIZE_ORDER" = true ]; then
