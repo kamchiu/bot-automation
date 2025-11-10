@@ -89,10 +89,24 @@ echo "找到 ${#BOT_NAMES[@]} 个机器人: ${BOT_NAMES[*]}"
 # 获取当前tmux session
 SESSION=$(tmux display-message -p '#S' 2>/dev/null || echo "bot")
 
+# 确保tmux session存在
+if ! tmux has-session -t "$SESSION" 2>/dev/null; then
+    echo "错误: tmux 会话 '$SESSION' 不存在，无法发送命令"
+    echo "请先启动机器人或手动创建 tmux 会话"
+    exit 1
+fi
+
+# 获取现有窗口列表
+WINDOW_LIST=$(tmux list-windows -t "$SESSION" -F "#{window_name}")
+
 echo "向所有机器人发送命令: $CMD"
 for BOT_NAME in "${BOT_NAMES[@]}"; do
-    echo "向机器人 $BOT_NAME 发送命令: $CMD"
-    tmux send-keys -t "$SESSION:$BOT_NAME" "$CMD" C-m
+    if echo "$WINDOW_LIST" | grep -Fxq "$BOT_NAME"; then
+        echo "向机器人 $BOT_NAME 发送命令: $CMD"
+        tmux send-keys -t "$SESSION:$BOT_NAME" "$CMD" C-m
+    else
+        echo "⚠️  未找到 tmux 窗口 '$BOT_NAME'，跳过发送命令"
+    fi
 done
 
 echo "命令发送完成！"
